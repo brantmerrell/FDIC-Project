@@ -1,3 +1,5 @@
+### Introduction
+
 This application will provide logistics and visualization for publicly accessible FDIC data, as well as a demonstration which answers the question, do larger banks take higher risks due to a too-big-to-fail status?
 
 The relationship between bank size and risk-taking is alleged by many to have contributed to the infamous financial crisis of 2007-08, in which a wave of bank failures overwhelmed the institutions of banking insurance. The government consequently funded the stabilization of the banking industry under the threat that its collapse would severely impact the rest of the economy. 
