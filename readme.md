@@ -8,18 +8,17 @@ Many critics of the bailout’s recipients alleged that the large banks had factor
 
 To assess the plausibility of this accusation, this demonstration will explore relationships between six FDIC variables for all banks: 
 
-<li>asset  - total assets;  </li>
+        <li>asset  - total assets;  </li>
 
-<li>numemp - Total employees (full-time equivalent);</li>
+        <li>numemp - Total employees (full-time equivalent);</li>
 
-<li>rbc1rwaj - tier 1 risk-based capital;  </li>
+        <li>rbc1rwaj - tier 1 risk-based capital;  </li>
 
-<li>RBCT2 - tier 2 risk-based capital; </li>
+        <li>RBCT2 - tier 2 risk-based capital; </li>
 
-<li>rbcrwaj - total risk-based capital ratio; and </li>
+        <li>rbcrwaj - total risk-based capital ratio; and </li>
 
-<li>RWAJT - total risk weighted assets adjusted.</li>
-
+        <li>RWAJT - total risk weighted assets adjusted.</li>
 
 In addition to quantifying these relationships, this demonstration will discuss the theoretical limitations of its results.
 
