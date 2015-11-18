@@ -17,73 +17,166 @@ projectVars<-c("cert","asset","numemp","rbc1rwaj","RBCT2","rbcrwaj","RWAJT")
 fdicFiles <- list.files("./rawFiles", 
                         pattern = paste(quarterID(tq['year'],tq['quarter']),".+\\.csv$", sep = ""), 
                         full.names = T)
+# Remove irrelevant files:
 for(File in fdicFiles){
+  
+  # read column names of each file:
   ColNames<-colnames(read.csv(File,nrows = 3))
+  
+  # remove off-topic column names:
   ColNames<-ColNames[which(ColNames %in% projectVars)]
+  
+  # remove files without the project's variables (other than "cert")
   if(length(ColNames)<2){
     file.remove(File)
   }
 }
+
+# create a pattern that selects the two relevant files
 filePattern<-"\\d{8}_Assets and Liabilities.csv|\\d{8}_Performance and Condition Ratios.csv"
 
+# store the list of zip files from which to extract the files:
 zipFiles<-list.files(zipFolder,"All_Reports",full.names=T)
+
+# extract relevant files from zips:
 for(ZIP in zipFiles){
-  # Files<-unzip(zipFiles[1],list=T)$Name
+  
+  # get a list of all files within zip:
   Files<-unzip(ZIP,list=T)$Name
+  
+  # store the exact names of files relevant to project:
   Files<-Files[grepl(filePattern,Files)]
+  
+  # unzip the project's relevant files from the zipfile:
   unzip(ZIP, files = Files, exdir = "./rawFiles")
-  print(Files)
+  
+  print(Files) 
 }
-dir.create("modified")
-File = list.files("rawFiles",pattern="\\.csv$",full.names = T)[1]
+
+# create a folder to store modified files:
+if(!file.exists("modified")){dir.create("modified")}
+
+# extract the relevant columns from each raw file:
 for(File in list.files("rawFiles",pattern="\\.csv$",full.names = T)){
+  
+  # read the raw file:
   DF<-read.csv(File)
+  
+  # identify which columns are relevant:
   ColNames <- which(colnames(DF) %in% projectVars)
+  
+  # trim the data frame to include only relevant files:
   DF<-DF[,ColNames]
+  
+  # write the data frame to the same file name, but in the "modified" folder
   write.csv(DF,gsub("rawFiles","modified",File))
 }
+
+# keep the raw files so the coding pipeline can be understood/replicated
+# but erase the data so the files fit on github:
 for(File in list.files("rawFiles",pattern="\\.csv$",full.names = T)){
   Message<-"This file has been cleared for space"
   writeLines(Message,File)
 }
 
+# store the path/names of the modified files:
 fdicFiles<-list.files("modified",full.names = T)
 
-DF1<-read.csv(fdicFiles[1],row.names="cert")
-DF1<-DF1[,-grep("^X$",colnames(DF1))]
-DF2<-read.csv(fdicFiles[2],row.names="cert")
-DF2<-DF2[,-grep("^X$",colnames(DF2))]
+# test the column-binding of the files:
 
-DF<-data.frame(matrix(nrow=nrow(DF1),ncol=ncol(DF1)+ncol(DF2)),
-               row.names=row.names(DF1))
-colnames(DF)<-c(colnames(DF1),colnames(DF2))
-for(cert in rownames(DF)){
-  DF[cert,colnames(DF1)]<-DF1[cert,colnames(DF1)]
-  DF[cert,colnames(DF2)]<-DF2[cert,colnames(DF2)]
-  if(cert %in% rownames(DF)[seq(1,nrow(DF),length.out = 20)]){
-    print(DF[cert,])
-  }
-}
-quarterPatterns<-unlist(strsplit(fdicFiles,"_"))
-quarterPatterns<-quarterPatterns[grepl("^\\d{8}$",quarterPatterns)]
-qP = quarterPatterns[1]
-for(qP in quarterPatterns){
-  File<-fdicFiles[grepl(qP,fdicFiles)]
-  DF1<-read.csv(File[1],row.names="cert")
+  # read two files:
+  DF1<-read.csv(fdicFiles[1],row.names="cert")
+  DF2<-read.csv(fdicFiles[2],row.names="cert")
+
+  # remove column "X" from each if it exists:
   DF1<-DF1[,-grep("^X$",colnames(DF1))]
-  DF2<-read.csv(File[2],row.names="cert")
   DF2<-DF2[,-grep("^X$",colnames(DF2))]
-  DF<-data.frame(matrix(nrow=nrow(DF1),ncol=ncol(DF1)+ncol(DF2)),
-                 row.names=row.names(DF1))
+
+  # create an empty data frame with the target rownames (cert):
+  DF<-data.frame(matrix(nrow=nrow(DF1), # same number of rows as either data frame
+                        
+                        ncol=ncol(DF1)+ncol(DF2)), # width of both data frames combined
+                 
+                 row.names=row.names(DF1)) # use the rownames of either of the data frames
+  
+  # name the columns after both data frames together:
   colnames(DF)<-c(colnames(DF1),colnames(DF2))
+
+  # find the DF1 and DF2 rows for each cert and combine them into a DF row:
   for(cert in rownames(DF)){
+    
+    # find the cert on DF, add the corresponding DF1 data to the row:
     DF[cert,colnames(DF1)]<-DF1[cert,colnames(DF1)]
+    
+    # find the cert on DF, add the corresponding DF2 data to the row:
     DF[cert,colnames(DF2)]<-DF2[cert,colnames(DF2)]
+
+    # print just enough of results to visually follow the loop:
     if(cert %in% rownames(DF)[seq(1,nrow(DF),length.out = 20)]){
-      print(cbind(DF[cert,],quarter=qP))
+      print(DF[cert,])
     }
   }
-  newFile<-paste("modified/",qP,".csv",sep="")
-  write.csv(DF,newFile)
+
+# create quarterPatterns to match File pairs for merging:
+
+  # splitting FDIC files by underscore will break the quarterPatterns from their strings:
+  quarterPatterns<-unlist(strsplit(fdicFiles,"_"))
+
+  # only the quarterPatterns consist solely of eight digits, so filter by regex:
+  quarterPatterns<-quarterPatterns[grepl("^\\d{8}$",quarterPatterns)]
+
+  # there are two files for each quarterPatterns, so redefine quarterPattern results to be unique:
+  quarterPatterns<-unique(quarterPatterns)
+
+# merge each quarterPattern's two files into a third csv file named "quarterPattern"
+for(qP in quarterPatterns){
+  
+  # avoid duplicating work if the third file already exists:
+  if(!file.exists(paste("modified/",qP,".csv",sep=""))){
+    
+    # filter fdicFiles by quarterPattern:
+    File<-fdicFiles[grepl(qP,fdicFiles)]
+    
+    # load the data from each file into two separate data frames:
+    DF1<-read.csv(File[1],row.names="cert")
+    DF2<-read.csv(File[2],row.names="cert")
+    
+    # remove the "x" column from each data frame (if it exists):
+    DF1<-DF1[,-grep("^X$",colnames(DF1))]
+    DF2<-DF2[,-grep("^X$",colnames(DF2))]
+    
+    # create an empty data frame with the target size / shape:
+    
+    DF<-data.frame(matrix(nrow=nrow(DF1), # target length equal to either data frame
+    
+                                                ncol=ncol(DF1)+ncol(DF2)), # target width equal to both data frames 
+                   
+                   row.names=row.names(DF1)) # target rownames equal to either data frame
+    
+    # name the target data frames columns after both data frames:
+    colnames(DF)<-c(colnames(DF1),colnames(DF2))
+    
+    # find the DF1 and DF2 rows for each cert and combine them into a DF row:
+    for(cert in rownames(DF)){
+      
+      # find the cert on DF, add the corresponding DF1 data to the row:
+      DF[cert,colnames(DF1)]<-DF1[cert,colnames(DF1)]
+      
+      # find the cert on DF, add the corresponding DF2 data to the row:
+      DF[cert,colnames(DF2)]<-DF2[cert,colnames(DF2)]
+      
+      # print just enough of results to visually follow the loop:
+      if(cert %in% rownames(DF)[seq(1,nrow(DF),length.out = 20)]){
+        print(cbind(DF[cert,],quarter=qP))
+      }
+      
+    }
+    
+    # name the new file after the quarterPattern:
+    newFile<-paste("modified/",qP,".csv",sep="")
+    
+    # write the data frame into the new file:
+    write.csv(DF,newFile)
+  }
 }
 
