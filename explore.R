@@ -180,3 +180,22 @@ for(qP in quarterPatterns){
   }
 }
 
+# build wide data frame:
+  # aggregate all certs:
+  for(n in 1:length(quarterPatterns)){
+    File<-paste("modified",quarterPatterns[n],".csv",sep="")
+    newCerts <- rownames(read.csv(File))
+    ifelse(n==1, certs <- newCerts, certs <- unique(c(certs, newCerts)))
+    print(File)
+  }
+  ColNames<-colnames(read.csv(File,nrows=3))
+  ColNames<-paste(ColNames,quarterPatterns,sep="_")
+  certs<-unique(certs)
+  DF<-data.frame(matrix(ncol=length(ColNames),nrow=length(certs)),row.names=certs)
+  colnames(DF)<-Colnames
+  for(n in 1:length(ncol(DF))){
+    qP<-strsplit(colnames(DF)[n],"_")[[1]][2]
+    varname<-strsplit(colnames(DF)[n],"_")[[1]][1]
+  }
+  
+
