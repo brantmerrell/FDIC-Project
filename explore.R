@@ -181,24 +181,35 @@ for(qP in quarterPatterns){
 }
   
 # erase earlier stages of the data:
-for(File in list.files("modified",pattern="_",full.names = T)){
-  writeLines("The data in this file has been piped elsewhere",File)
-}
+file.remove(list.files("modified",pattern="_",full.names = T))
 
 # build wide data frame:
   # aggregate all certs:
   for(n in 1:length(quarterPatterns)){
-    File<-paste("modified",quarterPatterns[n],".csv",sep="")
+    File<-paste("modified/",quarterPatterns[n],".csv",sep="")
     newCerts <- rownames(read.csv(File))
     ifelse(n==1, certs <- newCerts, certs <- unique(c(certs, newCerts)))
     print(File)
   }
   ColNames<-colnames(read.csv(File,nrows=3))
+  ColNames<-ColNames[!grepl("^X$",ColNames)]
   ColNames<-paste(ColNames,quarterPatterns,sep="_")
-  certs<-unique(certs)
   DF<-data.frame(matrix(ncol=length(ColNames),nrow=length(certs)),row.names=certs)
-  colnames(DF)<-Colnames
-  for(n in 1:length(ncol(DF))){
-    qP<-strsplit(colnames(DF)[n],"_")[[1]][2]
-    varname<-strsplit(colnames(DF)[n],"_")[[1]][1]
+  colnames(DF)<-ColNames
+  for(Q in quarterPatterns){
+    fileDF<-read.csv(paste("modified/",Q,".csv",sep=""),row.names="X")
+    for(V in colnames(fileDF)){
+      dfCol<-which(grepl(V,colnames(DF)) & grepl(Q, colnames(DF)))
+      for(cert in row.names(DF)){
+        if(cert %in% row.names(fileDF)){
+          DF[cert,dfCol]<-fileDF[cert,V]
+        }
+        if(cert %in% row.names(fileDF)[seq(1,nrow(fileDF),length.out=20)])
+          print(data.frame(quarter=Q,
+                           cert=cert, 
+                           varname=V,
+                           value=DF[cert,dfCol],
+                           "time"=paste(Sys.time())))
+      }
+    }
   }
