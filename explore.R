@@ -64,12 +64,26 @@ for(cert in rownames(DF)){
     print(DF[cert,])
   }
 }
+quarterPatterns<-unlist(strsplit(fdicFiles,"_"))
+quarterPatterns<-quarterPatterns[grepl("^\\d{8}$",quarterPatterns)]
+qP = quarterPatterns[1]
+for(qP in quarterPatterns){
+  File<-fdicFiles[grepl(qP,fdicFiles)]
+  DF1<-read.csv(File[1],row.names="cert")
+  DF1<-DF1[,-grep("^X$",colnames(DF1))]
+  DF2<-read.csv(File[2],row.names="cert")
+  DF2<-DF2[,-grep("^X$",colnames(DF2))]
+  DF<-data.frame(matrix(nrow=nrow(DF1),ncol=ncol(DF1)+ncol(DF2)),
+                 row.names=row.names(DF1))
+  colnames(DF)<-c(colnames(DF1),colnames(DF2))
+  for(cert in rownames(DF)){
+    DF[cert,colnames(DF1)]<-DF1[cert,colnames(DF1)]
+    DF[cert,colnames(DF2)]<-DF2[cert,colnames(DF2)]
+    if(cert %in% rownames(DF)[seq(1,nrow(DF),length.out = 20)]){
+      print(cbind(DF[cert,],quarter=qP))
+    }
+  }
+  newFile<-paste("modified/",qP,".csv",sep="")
+  write.csv(DF,newFile)
+}
 
-
-discrepancies<-(which(rownames(DF1)!=rownames(DF2)))
-bindTest1<-DF1[head(discrepancies),]
-bindTest2<-DF2[head(discrepancies),]
-cbind(bindTest1,bindTest2)
-DF<-cbind(DF1,DF2)
-head(DF2[,-grep("^cert$",colnames(DF))])
-head(DF2)
