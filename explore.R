@@ -179,6 +179,11 @@ for(qP in quarterPatterns){
     write.csv(DF,newFile)
   }
 }
+  
+# erase earlier stages of the data:
+for(File in list.files("modified",pattern="_",full.names = T)){
+  writeLines("The data in this file has been piped elsewhere",File)
+}
 
 # build wide data frame:
   # aggregate all certs:
@@ -197,5 +202,3 @@ for(qP in quarterPatterns){
     qP<-strsplit(colnames(DF)[n],"_")[[1]][2]
     varname<-strsplit(colnames(DF)[n],"_")[[1]][1]
   }
-  
-
