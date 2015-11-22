@@ -1,5 +1,6 @@
 rm(list=ls()) # clear workspace
-setwd("Josh/FDIC-Project")
+# setwd("Josh/FDIC-Project")
+setwd("FDIC-Project")
 load('fdic.RData') # load FDIC functions
 zipFolder<-"C:/Users/Kent/Documents/Josh/Zips" # define folder for FDIC data
 tq<-c(year=1993, quarter=3) # choose a test quarter for testing
@@ -57,10 +58,11 @@ for(ZIP in zipFiles){
 if(!file.exists("modified")){dir.create("modified")}
 
 # extract the relevant columns from each raw file:
+
 for(File in list.files("rawFiles",pattern="\\.csv$",full.names = T)){
   
   # read the raw file:
-  DF<-read.csv(File)
+  DF<-read.csv(File, row.names = "cert")
   
   # identify which columns are relevant:
   ColNames <- which(colnames(DF) %in% projectVars)
@@ -70,24 +72,104 @@ for(File in list.files("rawFiles",pattern="\\.csv$",full.names = T)){
   
   # write the data frame to the same file name, but in the "modified" folder
   write.csv(DF,gsub("rawFiles","modified",File))
+  print(File)
 }
 
-# keep the raw files so the coding pipeline can be understood/replicated
-# but erase the data so the files fit on github:
-for(File in list.files("rawFiles",pattern="\\.csv$",full.names = T)){
-  Message<-"This file has been cleared for space"
-  writeLines(Message,File)
+# # keep the raw files so the coding pipeline can be understood/replicated
+# # but erase the data so the files fit on github:
+# for(File in list.files("rawFiles",pattern="\\.csv$",full.names = T)){
+#   Message<-"This file has been cleared for space"
+#   writeLines(Message,File)
+# }
+rm(add,all,DF,DF1,DF2,fileDF,test)
+
+for(File in list.files("modified","\\.csv$",full.names = T)){
+  
+  DF<-read.csv(File,row.names = "X")
+  DF<-DF[order(rownames(DF)),]
+  file.remove(File)
+  write.csv(DF,File)
+  print(File)
 }
 
-# store the path/names of the modified files:
-fdicFiles<-list.files("modified",full.names = T)
+certs<-rownames(read.csv(list.files("modified","\\.csv$",full.names = T)[1], row.names = "X"))
+length(unique(certs))
+certs2<-rownames(read.csv(list.files("modified","\\.csv$",full.names = T)[2], row.names = "X"))
+identical(certs,certs2)
+certs3<-rownames(read.csv(list.files("modified","\\.csv$",full.names = T)[3], row.names = "X"))
+identical(certs,certs3)
+certs4<-unique(certs,certs3)
+sum(!certs3 %in% certs4)
+rm(certs,certs2,certs3,certs4)
 
+for(File in list.files("modified",))
+
+rows <- lapply(list.files("modified",".csv",full.names = T), read.csv, row.names="X")
+rows <- lapply(rows, nrow)
+rows <- unlist(rows)
+which(max(rows)==rows)
+certs<-rownames(read.csv(list.files("modified","\\.csv$",full.names = T)[1], row.names = "X"))
+certTest<-function(File){
+  print(File)
+  sum(!row.names(read.csv(File,row.names = "X")) %in% certs)==0
+}
+certTest(list.files("modified",".csv",full.names = T)[1])
+Tests<-lapply(list.files("modified",".csv",full.names = T),certTest)
+FALSE %in% unlist(Tests)
+
+certFill<-function(File){
+  DF<-read.csv(File,row.names = "X")
+  missing<-certs[!certs %in% row.names(DF)]
+  if(0<length(missing)){
+    all<-matrix(nrow = length(missing), ncol = ncol(DF))
+    all<-data.frame(all, row.names = missing)
+    colnames(all)<-colnames(DF)
+    DF <- rbind(DF,all)
+    DF <- DF[order(as.numeric(row.names(DF))),]
+  }
+  DF
+}
+
+for(File in (list.files("modified","\\.csv$",full.names = T))){
+  DF1<-certFill(File)
+  qP<-strsplit(File,"_")[[1]]
+  qP<-qP[grepl("\\d{8}",qP)]
+  colnames(DF1)<-paste(colnames(DF1),qP,sep = "_")
+  ifelse(File==list.files("modified","\\.csv$",full.names = T)[1],
+         DF<-certFill(File),
+         DF<-cbind(DF))
+  File<-list.files("modified",
+                   pattern=paste("_",qp,sep=""),
+                   full.names = T)
+}
+
+DF<-certFill(File=list.files("modified",full.names = T)[1])
+DF[seq(1,nrow(DF),length.out = 20),]
+DF<-certFill(File=list.files("modified",full.names = T)[2])
+DF[seq(1,nrow(DF),length.out = 20),]
+DF<-certFill(File=list.files("modified",full.names = T)[30])
+DF[seq(1,nrow(DF),length.out = 20),]
+DF<-certFill(File=list.files("modified",full.names = T)[61])
+DF[seq(1,nrow(DF),length.out = 20),]
+DF<-certFill(File=list.files("modified",full.names = T)[90])
+DF[seq(1,nrow(DF),length.out = 20),]
+DF<-certFill(File=list.files("modified",full.names = T)[121])
+DF[seq(1,nrow(DF),length.out = 20),]
+
+for(File in list.files("modified",pattern = "\\.csv$", full.names = T)){
+  DF<-certFill(File)
+  file.remove(File)
+  write.csv(DF,File)
+  print(File)
+}
+DF<-certFill(list.files("modified",full.names=T)[4])
 # test the column-binding of the files:
 
   # read two files:
-  DF1<-read.csv(fdicFiles[1],row.names="cert")
-  DF2<-read.csv(fdicFiles[2],row.names="cert")
+  DF1<-read.csv(list.files("modified",pattern = "\\.csv", full.names = T)[1],row.names="X")
+  DF2<-read.csv(list.files("modified",pattern = "\\.csv", full.names = T)[4],row.names="X")
 
+  head(cbind(DF1,DF2))
   # remove column "X" from each if it exists:
   DF1<-DF1[,-grep("^X$",colnames(DF1))]
   DF2<-DF2[,-grep("^X$",colnames(DF2))]
@@ -183,33 +265,47 @@ for(qP in quarterPatterns){
 # erase earlier stages of the data:
 file.remove(list.files("modified",pattern="_",full.names = T))
 
-# build wide data frame:
+# modify files to include all certs:
   # aggregate all certs:
+
   for(n in 1:length(quarterPatterns)){
     File<-paste("modified/",quarterPatterns[n],".csv",sep="")
     newCerts <- rownames(read.csv(File))
     ifelse(n==1, certs <- newCerts, certs <- unique(c(certs, newCerts)))
     print(File)
   }
-  ColNames<-colnames(read.csv(File,nrows=3))
-  ColNames<-ColNames[!grepl("^X$",ColNames)]
-  ColNames<-paste(ColNames,quarterPatterns,sep="_")
-  DF<-data.frame(matrix(ncol=length(ColNames),nrow=length(certs)),row.names=certs)
-  colnames(DF)<-ColNames
-  for(Q in quarterPatterns){
-    fileDF<-read.csv(paste("modified/",Q,".csv",sep=""),row.names="X")
-    for(V in colnames(fileDF)){
-      dfCol<-which(grepl(V,colnames(DF)) & grepl(Q, colnames(DF)))
-      for(cert in row.names(DF)){
-        if(cert %in% row.names(fileDF)){
-          DF[cert,dfCol]<-fileDF[cert,V]
-        }
-        if(cert %in% row.names(fileDF)[seq(1,nrow(fileDF),length.out=20)])
-          print(data.frame(quarter=Q,
-                           cert=cert, 
-                           varname=V,
-                           value=DF[cert,dfCol],
-                           "time"=paste(Sys.time())))
-      }
-    }
+
+  for(qP in quarterPatterns){
+    File<-list.files("modified",pattern=qP,full.names = T)
+    DF<-read.csv(File, row.names="X")
+    missing<-certs[!certs %in% row.names(DF)]
+    
+    if(0<length(missing)){
+      add<-data.frame(matrix(ncol=ncol(DF),nrow=length(missing)), row.names = missing)
+      colnames(add)<-colnames(DF)
+      track<-c(quarter=qP,target=length(certs), start=nrow(DF), add=nrow(add))
+      DF<-rbind(add,DF)
+      DF<-DF[order(as.numeric(rownames(DF))),]
+      write.csv(DF, File)
+      print(track)
+    }else{print(paste(qP,"is already full size"))}
   }
+  for(File in list.files("modified",full.names = T)){
+    print(nrow(read.csv(File)))
+  }
+  for(n in 1:length(quarterPatterns)){
+    workFrame<-read.csv(list.files("modified", pattern = quarterPatterns[n], full.names = T),
+                        row.names = "X")
+    
+  }
+  list.files("modified",full.names=T)
+  for(n in 1:length(quarterPatterns)){
+    workFrame<-read.csv(list.files("modified",
+                                   pattern = quarterPatterns[n],
+                                   full.names = T),
+                        row.names = "X")
+    colnames(workFrame)<-paste(colnames(workFrame),qP,sep = "_")
+    ifelse(n==1, DF<-workFrame, DF<-cbind(DF, workFrame))
+    print(colnames(workFrame))
+  }
+  
