@@ -4,23 +4,32 @@ library(shiny)
 shinyUI(fluidPage(
   
   # Application title
-  titlePanel("overtime size and risk"),
+  titlePanel("Bank Size and Risk over time"),
   
   # Sidebar with a slider input for the number of bars
   sidebarLayout(
     sidebarPanel(
       selectizeInput(
         'vars', 'variables',
-        choices=c("numemp","asset","RWAJT","RBCT2","rbc1rwaj","rbcrwaj")
+        choices=sort(c("numemp","asset","RWAJT","RBCT2","rbc1rwaj","rbcrwaj"))
       ),
       selectizeInput(
-        'metric1', 'red',
-        choices=c("Sum","Max","Median","Mean","Min")
+        'blue', 'blue',
+        choices=c("Min",sort(c("Median","Mean","Max","Sum")))
       ),
       selectizeInput(
-        'metric2', 'blue',
-        choices=c("Sum","Max","Median","Mean","Min")
-      )
+        'red', 'red',
+        choices=c("Median",sort(c("Min","Mean","Max","Sum")))
+      ),
+      selectizeInput(
+        'green', 'green',
+        choices=c("Mean",sort(c("Median","Min","Max","Sum")))
+      ),
+      sliderInput("range", "Range:",
+                  min = 1992,
+                  max = 2015, 
+                  value = c(1992,2015),
+                  sep = "")
     ),
 
     # Show a plot of the generated distribution
@@ -28,5 +37,6 @@ shinyUI(fluidPage(
       plotOutput("distPlot")
     )
   )
-  )
+)
+
 )
