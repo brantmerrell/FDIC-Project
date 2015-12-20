@@ -9,11 +9,11 @@ Files <- list.files(path = "modified",
                        pattern = "\\.csv$", 
                        full.names = T)
 
-quarterData<-function(quarterPattern){
+quarterData<-function(quarterPattern="19950331"){
   Files <- list.files(path = "modified", 
                       pattern = paste(quarterPattern,".+\\.csv$",sep = ""),
                       full.names = T)
-  if(exists("DF")){rm(DF)}
+  # if(exists("DF")){rm(DF)}
   DF1<-read.csv(Files[1])
   DF2<-read.csv(Files[2])
   if(!identical(DF1$X,DF2$X)){
@@ -34,9 +34,12 @@ quarterPlotBase<-function(quarterPattern="19930331",
                        x=c("asset","numemp"),
                        y=c("RBCT2","RWAJT","rbc1rwaj","rbcrwaj")){
   plotData <- quarterData(quarterPattern)
-  plot(plotData$numemp,plotData$asset)
-  plot(plotData[,x[1]], plotData[,y[1]], xlab = x[1], ylab = y[2],
+  # plot(plotData$numemp,plotData$asset)
+  reg1 <- lm(plotData[,x[1]]~plotData[,y[1]])
+  plot(plotData[,x[1]], plotData[,y[1]], xlab = x[1], ylab = y[1],
        sub = quarterPattern, main = "size and risk")
+  par(cex=.8)
+  abline(reg1)
 }
 unlink("Asset RBCT2",recursive = T)
 dir.create("Asset RBCT2")
@@ -67,5 +70,3 @@ for(year in 1993:2014){
   dev.off()
 }
 
-quarterPlotBase()
-DF<-quarterData()
