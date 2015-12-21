@@ -3,9 +3,9 @@ library(shiny)
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
   
-  
   # Application title
   titlePanel("Bank Size and Risk over time"),
+  
   # Sidebar with a slider input for the number of bars
   sidebarLayout(
     sidebarPanel(
@@ -19,42 +19,38 @@ shinyUI(fluidPage(
         choices=sort(c("numemp","asset","RWAJT","RBCT2","rbc1rwaj","rbcrwaj"))
       ),
       selectizeInput(
-        'blue1', 'blue 1',
+        'blue1', 'blue',
         choices=c("Min",sort(c("Median","Mean","Max","Sum")))
       ),
       selectizeInput(
-        'red1', 'red 1',
+        'red1', 'red',
         choices=c("Median",sort(c("Min","Mean","Max","Sum")))
       ),
       selectizeInput(
-        'green1', 'green 1',
-        choices=c("Mean",sort(c("Median","Min","Max","Sum")))
-      ),
-      selectizeInput(
-        'blue2', 'blue 2',
-        choices=c("Min",sort(c("Median","Mean","Max","Sum")))
-      ),
-      selectizeInput(
-        'red2', 'red 2',
-        choices=c("Median",sort(c("Min","Mean","Max","Sum")))
-      ),
-      selectizeInput(
-        'green2', 'green 2',
+        'green1', 'green',
         choices=c("Mean",sort(c("Median","Min","Max","Sum")))
       )
+#       selectizeInput(
+#         'blue2', 'blue 2',
+#         choices=c("Min",sort(c("Median","Mean","Max","Sum")))
+#       ),
+#       selectizeInput(
+#         'red2', 'red 2',
+#         choices=c("Median",sort(c("Min","Mean","Max","Sum")))
+#       ),
+#       selectizeInput(
+#         'green2', 'green 2',
+#         choices=c("Mean",sort(c("Median","Min","Max","Sum")))
+#       )
+      
     ),
+
     # Show a plot of the generated distribution
     mainPanel(
       plotOutput("plot1"),
       plotOutput("plot2"),
       verbatimTextOutput('out1')
     )
-  ),
-  column(6,
-         # includeText("readme.md"),
-         # br(),
-         pre(includeText("readme.md"))
-         )
-  
+  )
 )
 )

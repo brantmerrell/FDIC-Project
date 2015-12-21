@@ -2,6 +2,6 @@ name: plotSummary
 account: brantmerrell
 server: shinyapps.io
 appId: 74591
-bundleId: 335930
+bundleId: 336379
 url: https://brantmerrell.shinyapps.io/plotSummary
-when: 1450667407.47017
+when: 1450729706.17003
